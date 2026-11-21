@@ -4,7 +4,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.enums import ChatAction
 import asyncio
 import logging
-
+from datetime import datetime
 
 
 router = Router()
@@ -50,8 +50,7 @@ async def cmd_info(message: Message):
     )
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
-
-@router.message(Command("owner"))
+@router.message(Command("dev"))
 async def cmd_owner(message : Message):
     await message.bot.send_chat_action(
             chat_id=message.chat.id, 
@@ -65,4 +64,5 @@ async def cmd_owner(message : Message):
         "🐙 <b> GitHub:</b> <a href='https://github.com/l1unyyy'>github.com/l1unyyy</a></blockquote>"
     )
     await message.answer(text, parse_mode="HTML")
+
 
