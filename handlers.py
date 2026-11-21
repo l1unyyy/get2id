@@ -41,14 +41,28 @@ async def cmd_info(message: Message):
 
     text = (
         "👤 <b> User information</b>\n\n"
-        f"<b>id : </b> <code> {user.id}</code>\n"
+        f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
         f"<b>name : </b>  {user.first_name}\n"
         f"<b>username : </b>  {username}\n"
         f"<b>bot : </b>  {is_bot}\n"
         f"<b>premium : </b>  {is_premium}\n"
-        f"<b>language : </b>  {lang}\n"
+        f"<b>language : </b>  {lang}\n</blockquote>"
     )
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
 
+@router.message(Command("owner"))
+async def cmd_owner(message : Message):
+    await message.bot.send_chat_action(
+            chat_id=message.chat.id, 
+            action=ChatAction.TYPING
+        )
+    await asyncio.sleep(0.3)
+    text = (
+        "💎<b> Project information.</b>\n\n"
+        "<blockquote>👤 <b> Developer:</b> @kiloware\n"
+        "📩 <b> Contact:</b> <a href='https://t.me/kiloware'> Send a DM.</a>\n"
+        "🐙 <b> GitHub:</b> <a href='https://github.com/l1unyyy'>github.com/l1unyyy</a></blockquote>"
+    )
+    await message.answer(text, parse_mode="HTML")
 
