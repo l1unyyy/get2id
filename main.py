@@ -3,6 +3,8 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 import logging
+from handlers import router
+
 
 logging.basicConfig(
     level = logging.INFO,
@@ -13,15 +15,26 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-dp = Dispatcher()
+
 
 
 async def main():
     load_dotenv()
     bot = Bot(os.getenv("BOT_TOKEN"))
+    dp = Dispatcher()
+    dp.include_router(router)
+    dp.startup.register(startup)
+    dp.shutdown.register(shutdown)
     await bot.delete_webhook(drop_pending_updates = True) 
     await dp.start_polling(bot)
 
+async def startup():
+    logging.info("Бот запустился")
+    print("Bot is starting up...")
+
+async def shutdown():
+    logging.info("Бот закончил работу")
+    print("Bot is shutting down")
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.INFO)
