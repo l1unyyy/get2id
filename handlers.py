@@ -401,3 +401,32 @@ async def on_custom_emoji(message: Message):
         f"<b>Custom emoji id</b>\n<blockquote>{lines}</blockquote>",
         parse_mode="HTML",
     )
+
+@router.message(F.text)
+async def on_text(message: Message):
+    user = message.from_user
+    if user is None:
+        return
+
+    emoji_text  = "5257965174979042426"  
+
+    types = sorted({e.type for e in (message.entities or [])})
+    ids = list(dict.fromkeys(
+        e.custom_emoji_id
+        for e in (message.entities or [])
+        if e.type == "custom_emoji"
+    ))
+
+    text = user_block(user) + forward_block(message) + (
+        f"<b><tg-emoji emoji-id='{emoji_text}'>💬</tg-emoji> Text information</b>\n\n"
+        f"<b>length : </b>{len(message.text)}\n"
+        f"<b>message_id : </b><code>{message.message_id}</code>\n"
+        f"<b>chat_id : </b><code>{message.chat.id}</code>\n"
+        f"<b>entities : </b>{', '.join(types) or '-'}\n"
+    )
+
+    if ids:
+        lines = "\n".join(f"<code>{i}</code>" for i in ids)
+        text += f"\n<b>Custom emoji id</b>\n<blockquote>{lines}</blockquote>"
+
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
