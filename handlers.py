@@ -83,7 +83,7 @@ def forward_block(message: Message) -> str:
     elif o.type in ("chat", "channel"):
         c = o.sender_chat if o.type == "chat" else o.chat
         lines.append(f"<b>id : </b><code>{c.id}</code>")
-        lines.append(f"<b>title : </b>{html.escape(c.title or"-")}")
+        lines.append(f"<b>title : </b>{html.escape(c.title or '-')}")
         if c.username:
             lines.append(f"<b>username : </b>@{c.username}")
         if o.type == "channel":
@@ -237,8 +237,8 @@ async def on_animation(message: Message):
         f"<b>width : </b>{an.width}\n"
         f"<b>height : </b>{an.height}\n"
         f"<b>duration : </b>{m}:{sec:02d}\n"
-        f"<b>file_name : </b>{html.escape(an.file_name or "-")}\n"
-        f"<b>mime_type : </b>{an.mime_type or "-"}\n"
+        f"<b>file_name : </b>{html.escape(an.file_name or '-')}\n"
+        f"<b>mime_type : </b>{an.mime_type or '-'}\n"
         f"<b>file_id : </b><code>{an.file_id}</code>\n"
         f"<b>file_unique_id : </b><code>{an.file_unique_id}</code>\n"
         f"<b>file_size : </b>{(an.file_size or 0) / 1000:.2f} kB\n"
@@ -261,8 +261,8 @@ async def on_document(message : Message):
     text = user_block(user) +  forward_block(message) + (
 
             f"\n<b><tg-emoji emoji-id='{emoji_document}'>📦</tg-emoji> Document information</b>\n\n"
-            f"<b>file_name : </b> {html.escape(d.file_name or "-")} \n"
-            f"<b>mime_type : </b>  {d.mime_type or "-"}\n"
+            f"<b>file_name : </b> {html.escape(d.file_name or '-')} \n"
+            f"<b>mime_type : </b>  {d.mime_type or '-'}\n"
             f"<b>file_id : </b> <code> {d.file_id}</code>\n"
             f"<b>file_unique_id : </b> <code> {d.file_unique_id}</code>\n"
             f"<b>file_size : </b>  {(d.file_size or 0) / 1000:.2f} kB \n"
@@ -285,11 +285,11 @@ async def on_audio(message : Message):
     text = user_block(user) + forward_block(message) + (
 
             f"\n<b><tg-emoji emoji-id='{emoji_audio}'>🎶</tg-emoji> Audio information</b>\n\n"
-            f"<b>title : </b> {html.escape(a.title or "-")} \n"
-            f"<b>performer : </b> {html.escape(a.performer or "-")}\n"
-            f"<b>file_name : </b> {html.escape(a.file_name or "-")}\n"
+            f"<b>title : </b> {html.escape(a.title or '-')} \n"
+            f"<b>performer : </b> {html.escape(a.performer or '-')}\n"
+            f"<b>file_name : </b> {html.escape(a.file_name or '-')}\n"
             f"<b>duration : </b> {m}:{sec:02d}\n"
-            f"<b>mime_type : </b>  {a.mime_type or "-"}\n"
+            f"<b>mime_type : </b>  {a.mime_type or '-'}\n"
             f"<b>file_id : </b> <code> {a.file_id} </code>\n"
             f"<b>file_unique_id : </b> <code> {a.file_unique_id} </code>\n"
             f"<b>file_size : </b> {(a.file_size or 0) / 1000:.2f} kB\n"
@@ -312,7 +312,7 @@ async def on_voice(message: Message):
     text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_voice}'>🎤</tg-emoji> Voice information</b>\n\n"
         f"<b>duration : </b>{m}:{sec:02d}\n"
-        f"<b>mime_type : </b>{v.mime_type or "-"}\n"
+        f"<b>mime_type : </b>{v.mime_type or '-'}\n"
         f"<b>file_id : </b><code>{v.file_id}</code>\n"
         f"<b>file_unique_id : </b><code>{v.file_unique_id}</code>\n"
         f"<b>file_size : </b>{(v.file_size or 0) / 1000:.2f} kB\n"
@@ -384,10 +384,10 @@ async def on_contact(message: Message):
     text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_contact}'>📞</tg-emoji> Contact information</b>\n\n"
         f"<b>first_name : </b>{html.escape(c.first_name)}\n"
-        f"<b>last_name : </b>{html.escape(c.last_name or "-")}\n"
+        f"<b>last_name : </b>{html.escape(c.last_name or '-')}\n"
         f"<b>phone_number : </b><code>{c.phone_number}</code>\n"
-        f"<b>user_id : </b>{f'<code>{c.user_id}</code>' if c.user_id else "-"}\n"
-        f"<b>vcard : </b>{"is available" if c.vcard else "-"}\n"
+        f"<b>user_id : </b>{f'<code>{c.user_id}</code>' if c.user_id else '-'}\n"
+        f"<b>vcard : </b>{'is available' if c.vcard else '-'}\n"
     )
 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
@@ -406,8 +406,8 @@ async def on_location(message: Message):
         f"<b>latitude : </b><code>{loc.latitude}</code>\n"
         f"<b>longitude : </b><code>{loc.longitude}</code>\n"
         f"<b>horizontal_accuracy : </b>{loc.horizontal_accuracy or '-'}\n"
-        f"<b>live_period : </b>{loc.live_period or "-"}\n"
-        f"<b>heading : </b>{loc.heading or "-"}\n"
+        f"<b>live_period : </b>{loc.live_period or '-'}\n"
+        f"<b>heading : </b>{loc.heading or '-'}\n"
         f'<b>map : </b><a href="https://www.google.com/maps?q={loc.latitude},{loc.longitude}">Google Maps</a>\n'
     )
 
