@@ -260,3 +260,26 @@ async def on_video(message: Message):
     text += caption_block(message)
 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+@router.message(F.video_note)
+async def on_video_note(message: Message):
+    user = message.from_user
+    vn = message.video_note
+    if user is None:
+        return
+
+    m, sec = divmod(vn.duration, 60)
+    emoji_vn = "5258012149036365477"  # замените на свой id эмодзи
+
+    text = user_block(user) + (
+        f"<b><tg-emoji emoji-id='{emoji_vn}'>⭕️</tg-emoji> Video note information</b>\n\n"
+        f"<b>length : </b>{vn.length}\n"
+        f"<b>duration : </b>{m}:{sec:02d}\n"
+        f"<b>file_id : </b><code>{vn.file_id}</code>\n"
+        f"<b>file_unique_id : </b><code>{vn.file_unique_id}</code>\n"
+        f"<b>file_size : </b>{(vn.file_size or 0) / 1000:.2f} kB\n"
+    )
+    if vn.thumbnail:
+        text += thumb_block(vn.thumbnail)
+
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
