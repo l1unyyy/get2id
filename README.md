@@ -1,3 +1,4 @@
+<img width="1280" height="640" alt="изображение" src="https://github.com/user-attachments/assets/366f9beb-bddb-42fc-8551-aa310a59d9aa" />
 
 # get2id
 
