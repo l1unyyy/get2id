@@ -5,11 +5,49 @@ from aiogram.enums import ChatAction
 import asyncio
 import logging
 from datetime import datetime
+import html
 
 router = Router()
 log = logging.getLogger(__name__)
 STICKER_ID = "CAACAgIAAxkBA7bpYGsCGfs6lslpyiTNyXf7oOwEl2fSAAJ0SQACoCf4SntfJDgZ15ogPQQ"
+emoji_user = '5256143829672672750'
+emoji_thumbnail = '5258477770735885832'
+emoji_caption = '5258328383183396223'
 
+def user_block(user) -> str:
+    is_bot = "✅" if user.is_bot else "❌"
+    is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
+    username = (
+        f'<a href="https://t.me/{user.username}">@{user.username}</a>'
+        if user.username else "—"
+    )
+    lang = user.language_code or "—"
+    return (
+        f"<b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+        f"<blockquote><b>id : </b><code>{user.id}</code>\n"
+        f"<b>name : </b>{html.escape(user.first_name)}\n"
+        f"<b>username : </b>{username}\n"
+        f"<b>bot : </b>{is_bot}\n"
+        f"<b>premium : </b>{is_premium}\n"
+        f"<b>language : </b>{lang}</blockquote>\n\n"
+    )
+
+def thumb_block(t) -> str:
+    return (
+        f"\n<b><tg-emoji emoji-id='{emoji_thumbnail}'>📄</tg-emoji> Thumbnail</b>\n"
+        f"<blockquote><b>width : </b>{t.width}\n"
+        f"<b>height : </b>{t.height}\n"
+        f"<b>file_id : </b><code>{t.file_id}</code>\n"
+        f"<b>file_unique_id : </b><code>{t.file_unique_id}</code></blockquote>\n"
+    )
+
+def caption_block(message: Message) -> str:
+    if not message.caption:
+        return ""
+    return (
+        f"\n<b><tg-emoji emoji-id='{emoji_caption}'>📖</tg-emoji> Caption</b>\n"
+        f"<blockquote>{html.escape(message.caption)}</blockquote>"
+    )
 @router.message(CommandStart())
 async def cmd_start(message : Message):
     log.info(f"Пользователь {message.from_user.id} (@{message.from_user.username}) запустил бота")
@@ -40,7 +78,7 @@ async def cmd_info(message: Message):
     lang = user.language_code or "—"
 
     text = (
-        "👤 <b> User information</b>\n\n"
+        "👤 <b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
         f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
         f"<b>name : </b>  {user.first_name}\n"
         f"<b>username : </b>  {username}\n"
@@ -71,22 +109,8 @@ async def on_sticker(message : Message):
     s = message.sticker
     if user is None:
             return
-    
-    is_bot = "✅" if user.is_bot else "❌"
-    is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
-    username = f'<a href="https://t.me/{user.username}">@{user.username}</a>' if user.username else "—"
-    lang = user.language_code or "—"
-    emoji_user = '5256143829672672750'
     emoji_sticker = '5258179403652801593'
-
-    text = (
-        f"\n<b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
-        f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
-        f"<b>name : </b>  {user.first_name}\n"
-        f"<b>username : </b>  {username}\n"
-        f"<b>bot : </b>  {is_bot}\n"
-        f"<b>premium : </b>  {is_premium}\n"
-        f"<b>language : </b>  {lang}</blockquote>\n\n"
+    text = user_block(user) + (
     
         f"<b><tg-emoji emoji-id='{emoji_sticker}' >❤️</tg-emoji> Sticker information</b>\n\n"
         f"<b>width : </b>  {s.width}\n"
@@ -115,11 +139,132 @@ async def on_sticker(message : Message):
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
         
         
+@router.message(F.photo)
+async def on_sticker(message : Message):
+    user = message.from_user
+    ph = message.photo[-1]
 
-
-   
-
-
-
+    if user is None:
+            return
+    is_bot = "✅" if user.is_bot else "❌"
+    is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
+    username = f'<a href="https://t.me/{user.username}">@{user.username}</a>' if user.username else "—"
+    lang = user.language_code or "—"
+    emoji_user = '5256143829672672750'
+    emoji_photo = '5258205968025525531'
+    emoji_caption = '5258328383183396223'
     
+    text = (
+            f"\n<b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+            f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
+            f"<b>name : </b>  {user.first_name}\n"
+            f"<b>username : </b>  {username}\n"
+            f"<b>bot : </b>  {is_bot}\n"
+            f"<b>premium : </b>  {is_premium}\n"
+            f"<b>language : </b>  {lang}</blockquote>\n\n"
 
+            f"<b><tg-emoji emoji-id='{emoji_photo}'>📸</tg-emoji> Photo information</b>\n\n"
+            f"<b>width : </b>  {ph.width}\n"
+            f"<b>height : </b>  {ph.height}\n"
+            f"<b>file_id : </b> <code> {ph.file_id} </code>\n"
+            f"<b>file_unique_id : </b> <code> {ph.file_unique_id}</code>\n"
+            f"<b>file size : </b>  {(ph.file_size )/ 1000:.2f} kB\n"
+    )
+    if message.caption :
+        text += f"\n <b><tg-emoji emoji-id='{emoji_caption}' >📖</tg-emoji> Caption</b>\n<blockquote>{message.caption}</blockquote>"
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+@router.message(F.document)
+async def on_sticker(message : Message):
+    user = message.from_user
+    d = message.document
+
+    if user is None:
+            return
+    
+    is_bot = "✅" if user.is_bot else "❌"
+    is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
+    username = f'<a href="https://t.me/{user.username}">@{user.username}</a>' if user.username else "—"
+    lang = user.language_code or "—"
+    emoji_user = '5256143829672672750'
+    emoji_document = "5258134813302332906"
+    emoji_thumbnail = '5258477770735885832'
+    emoji_caption = '5258328383183396223'
+    text = (
+            f"\n<b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+            f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
+            f"<b>name : </b>  {user.first_name}\n"
+            f"<b>username : </b>  {username}\n"
+            f"<b>bot : </b>  {is_bot}\n"
+            f"<b>premium : </b>  {is_premium}\n"
+            f"<b>language : </b>  {lang}</blockquote>\n\n"
+
+            f"\n<b><tg-emoji emoji-id='{emoji_document}'>📦</tg-emoji> Document information</b>\n\n"
+            f"<b>file_name : </b> {html.escape(d.file_name or "-")} \n"
+            f"<b>mime_type : </b>  {d.mime_type or "-"}\n"
+            f"<b>file_id : </b> <code> {d.file_id}</code>\n"
+            f"<b>file_unique_id : </b> <code> {d.file_unique_id}</code>\n"
+            f"<b>file_size : </b>  {(d.file_size or 0) / 1000:.2f} kB \n"
+    )
+    if d.thumbnail:
+        t  = d.thumbnail
+        text += (
+            "\n<b><tg-emoji emoji-id='{emoji_thumbnail}'>📄</tg-emoji> Thumbnail</b>\n"
+            f"<blockquote><b>width : </b>{t.width}\n"
+            f"<b>height : </b>{t.height}\n"
+            f"<b>file_id : </b><code>{t.file_id}</code>\n"
+            f"<b>file_unique_id : </b><code>{t.file_unique_id}</code>\n"
+        )
+    if message.caption :
+            text += f"\n <b><tg-emoji emoji-id='{emoji_caption}' >📖</tg-emoji> Caption</b>\n<blockquote>{html.escape(message.caption)}</blockquote>"
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+    
+@router.message(F.audio)
+async def on_sticker(message : Message):
+    user = message.from_user
+    a = message.audio
+
+    if user is None:
+            return
+    
+    is_bot = "✅" if user.is_bot else "❌"
+    is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
+    username = f'<a href="https://t.me/{user.username}">@{user.username}</a>' if user.username else "—"
+    lang = user.language_code or "—"
+    m,s = divmod(a.duration, 60)
+    emoji_user = '5256143829672672750'
+    emoji_audio = "5258334469152054985"
+    emoji_thumbnail = '5258477770735885832'
+    emoji_caption = '5258328383183396223'
+    text = (
+            f"\n<b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+            f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
+            f"<b>name : </b>  {user.first_name}\n"
+            f"<b>username : </b>  {username}\n"
+            f"<b>bot : </b>  {is_bot}\n"
+            f"<b>premium : </b>  {is_premium}\n"
+            f"<b>language : </b>  {lang}</blockquote>\n\n"
+
+            f"\n<b><tg-emoji emoji-id='{emoji_audio}'>🎶</tg-emoji> Audio information</b>\n\n"
+            f"<b>title : </b> {html.escape(a.title or "-")} \n"
+            f"<b>performer : </b> {html.escape(a.performer or "-")}\n"
+            f"<b>file_name : </b> {html.escape(a.file_name or "-")}\n"
+            f"<b>duration : </b> {m}:{s:02d}\n"
+            f"<b>mime_type : </b>  {a.mime_type or "-"}\n"
+            f"<b>file_id : </b> <code> {a.file_id} </code>\n"
+            f"<b>file_unique_id : </b> <code> {a.file__unique_id} </code>\n"
+            f"<b>file_size : </b> {(a.file_size or 0) / 1000:.2f} kB\n"
+    )
+    if a.thumbnail:
+        t  = a.thumbnail
+        text += (
+            "\n<b><tg-emoji emoji-id='{emoji_thumbnail}'>📄</tg-emoji> Thumbnail</b>\n"
+            f"<blockquote><b>width : </b>{t.width}\n"
+            f"<b>height : </b>{t.height}\n"
+            f"<b>file_id : </b><code>{t.file_id}</code>\n"
+            f"<b>file_unique_id : </b><code>{t.file_unique_id}</code>\n"
+        )
+    if message.caption :
+            text += f"\n <b><tg-emoji emoji-id='{emoji_caption}' >📖</tg-emoji> Caption</b>\n<blockquote>{html.escape(message.caption)}</blockquote>"
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+    
