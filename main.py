@@ -16,8 +16,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-
 async def main():
     load_dotenv()
     bot = Bot(os.getenv("BOT_TOKEN"))

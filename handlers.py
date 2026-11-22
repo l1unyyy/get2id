@@ -13,7 +13,7 @@ STICKER_ID = "CAACAgIAAxkBA7bpYGsCGfs6lslpyiTNyXf7oOwEl2fSAAJ0SQACoCf4SntfJDgZ15
 emoji_user = '5256143829672672750'
 emoji_thumbnail = '5258477770735885832'
 emoji_caption = '5258328383183396223'
-
+EMOJI_FWD = "5258236805890710909" 
 def user_block(user) -> str:
     is_bot = "✅" if user.is_bot else "❌"
     is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
@@ -48,6 +48,41 @@ def caption_block(message: Message) -> str:
         f"\n<b><tg-emoji emoji-id='{emoji_caption}'>📖</tg-emoji> Caption</b>\n"
         f"<blockquote>{html.escape(message.caption)}</blockquote>"
     )
+
+
+
+def forward_block(message: Message) -> str:
+    o = message.forward_origin
+    if not o:
+        return ""
+
+    lines = [f"<b>type : </b>{o.type}"]
+
+    if o.type == "user":
+        u = o.sender_user
+        lines.append(f"<b>id : </b><code>{u.id}</code>")
+        lines.append(f"<b>name : </b>{html.escape(u.full_name)}")
+        if u.username:
+            lines.append(f"<b>username : </b>@{u.username}")
+
+    elif o.type == "hidden_user":
+        lines.append(f"<b>name : </b>{html.escape(o.sender_user_name)}")
+        lines.append("<b>id : </b> hidden")
+
+    elif o.type in ("chat", "channel"):
+        c = o.sender_chat if o.type == "chat" else o.chat
+        lines.append(f"<b>id : </b><code>{c.id}</code>")
+        lines.append(f"<b>title : </b>{html.escape(c.title or"-")}")
+        if c.username:
+            lines.append(f"<b>username : </b>@{c.username}")
+        if o.type == "channel":
+            lines.append(f"<b>message_id : </b><code>{o.message_id}</code>")
+
+    return (
+        f"\n<b><tg-emoji emoji-id='{EMOJI_FWD}'>↪️</tg-emoji> Forwarded from</b>\n"
+        f"<blockquote>{chr(10).join(lines)}</blockquote>\n"
+    )
+
 @router.message(CommandStart())
 async def cmd_start(message : Message):
     log.info(f"Пользователь {message.from_user.id} (@{message.from_user.username}) запустил бота")
@@ -110,7 +145,7 @@ async def on_sticker(message : Message):
     if user is None:
             return
     emoji_sticker = '5258179403652801593'
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
     
         f"<b><tg-emoji emoji-id='{emoji_sticker}' >❤️</tg-emoji> Sticker information</b>\n\n"
         f"<b>width : </b>  {s.width}\n"
@@ -309,5 +344,46 @@ async def on_animation(message: Message):
     if an.thumbnail:
         text += thumb_block(an.thumbnail)
     text += caption_block(message)
+
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+@router.message(F.contact)
+async def on_contact(message: Message):
+    user = message.from_user
+    c = message.contact
+    if user is None:
+        return
+
+    emoji_contact = "5258362837411045098"  
+
+    text = user_block(user) + (
+        f"<b><tg-emoji emoji-id='{emoji_contact}'>📞</tg-emoji> Contact information</b>\n\n"
+        f"<b>first_name : </b>{html.escape(c.first_name)}\n"
+        f"<b>last_name : </b>{html.escape(c.last_name or "-")}\n"
+        f"<b>phone_number : </b><code>{c.phone_number}</code>\n"
+        f"<b>user_id : </b>{f'<code>{c.user_id}</code>' if c.user_id else "-"}\n"
+        f"<b>vcard : </b>{"is available" if c.vcard else "-"}\n"
+    )
+
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+@router.message(F.location)
+async def on_location(message: Message):
+    user = message.from_user
+    loc = message.location
+    if user is None:
+        return
+
+    emoji_loc = "5258509201306557640" 
+
+    text = user_block(user) + (
+        f"<b><tg-emoji emoji-id='{emoji_loc}'>📍</tg-emoji> Location information</b>\n\n"
+        f"<b>latitude : </b><code>{loc.latitude}</code>\n"
+        f"<b>longitude : </b><code>{loc.longitude}</code>\n"
+        f"<b>horizontal_accuracy : </b>{loc.horizontal_accuracy or '-'}\n"
+        f"<b>live_period : </b>{loc.live_period or "-"}\n"
+        f"<b>heading : </b>{loc.heading or "-"}\n"
+        f'<b>map : </b><a href="https://www.google.com/maps?q={loc.latitude},{loc.longitude}">Google Maps</a>\n'
+    )
 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
