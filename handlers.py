@@ -80,7 +80,7 @@ def forward_block(message: Message) -> str:
 
     return (
         f"\n<b><tg-emoji emoji-id='{EMOJI_FWD}'>↪️</tg-emoji> Forwarded from</b>\n"
-        f"<blockquote>{chr(10).join(lines)}</blockquote>\n"
+        f"<blockquote>{chr(10).join(lines)}</blockquote>\n\n"
     )
 
 @router.message(CommandStart())
@@ -113,7 +113,7 @@ async def cmd_info(message: Message):
     lang = user.language_code or "—"
 
     text = (
-        "👤 <b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+        f"👤 <b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
         f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
         f"<b>name : </b>  {user.first_name}\n"
         f"<b>username : </b>  {username}\n"
@@ -163,7 +163,7 @@ async def on_sticker(message : Message):
         f"<b><tg-emoji emoji-id='{emoji_id}' >⭐</tg-emoji> Premium animation</b>\n\n "
         f"<b>file_id : </b><code>  {p.file_id}</code>\n"
         f"<b>file_unique_id : </b> <code> {p.file_unique_id}</code>\n"
-        f"<b>file_size : </b> {p.file_size / 1000:.2f} kB\n"
+        f"<b>file_size : </b> {(p.file_size or 0)/ 1000:.2f} kB\n"
     )
     text += (
         
@@ -183,18 +183,45 @@ async def on_photo(message : Message):
             return
     emoji_photo = '5258205968025525531'
     
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) +(
 
             f"<b><tg-emoji emoji-id='{emoji_photo}'>📸</tg-emoji> Photo information</b>\n\n"
             f"<b>width : </b>  {ph.width}\n"
             f"<b>height : </b>  {ph.height}\n"
             f"<b>file_id : </b> <code> {ph.file_id} </code>\n"
             f"<b>file_unique_id : </b> <code> {ph.file_unique_id}</code>\n"
-            f"<b>file size : </b>  {(ph.file_size )/ 1000:.2f} kB\n"
+            f"<b>file size : </b>  {(ph.file_size or 0 )/ 1000:.2f} kB\n"
     )
     if message.caption :
         text += caption_block(message)
         
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+@router.message(F.animation)
+async def on_animation(message: Message):
+    user = message.from_user
+    an = message.animation
+    if user is None:
+        return
+
+    m, sec = divmod(an.duration, 60)
+    emoji_anim = "5258212268742549391" 
+
+    text = user_block(user) + forward_block(message) + (
+        f"<b><tg-emoji emoji-id='{emoji_anim}'>🎞</tg-emoji> Animation information</b>\n\n"
+        f"<b>width : </b>{an.width}\n"
+        f"<b>height : </b>{an.height}\n"
+        f"<b>duration : </b>{m}:{sec:02d}\n"
+        f"<b>file_name : </b>{html.escape(an.file_name or "-")}\n"
+        f"<b>mime_type : </b>{an.mime_type or "-"}\n"
+        f"<b>file_id : </b><code>{an.file_id}</code>\n"
+        f"<b>file_unique_id : </b><code>{an.file_unique_id}</code>\n"
+        f"<b>file_size : </b>{(an.file_size or 0) / 1000:.2f} kB\n"
+    )
+    if an.thumbnail:
+        text += thumb_block(an.thumbnail)
+    text += caption_block(message)
+
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
 @router.message(F.document)
@@ -206,7 +233,7 @@ async def on_document(message : Message):
             return
  
     emoji_document = "5258134813302332906"
-    text = user_block(user) + (
+    text = user_block(user) +  forward_block(message) + (
 
             f"\n<b><tg-emoji emoji-id='{emoji_document}'>📦</tg-emoji> Document information</b>\n\n"
             f"<b>file_name : </b> {html.escape(d.file_name or "-")} \n"
@@ -230,7 +257,7 @@ async def on_audio(message : Message):
     m,sec = divmod(a.duration, 60)
     emoji_audio = "5258334469152054985"
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
 
             f"\n<b><tg-emoji emoji-id='{emoji_audio}'>🎶</tg-emoji> Audio information</b>\n\n"
             f"<b>title : </b> {html.escape(a.title or "-")} \n"
@@ -239,7 +266,7 @@ async def on_audio(message : Message):
             f"<b>duration : </b> {m}:{sec:02d}\n"
             f"<b>mime_type : </b>  {a.mime_type or "-"}\n"
             f"<b>file_id : </b> <code> {a.file_id} </code>\n"
-            f"<b>file_unique_id : </b> <code> {a.file__unique_id} </code>\n"
+            f"<b>file_unique_id : </b> <code> {a.file_unique_id} </code>\n"
             f"<b>file_size : </b> {(a.file_size or 0) / 1000:.2f} kB\n"
     )
     if a.thumbnail:
@@ -257,7 +284,7 @@ async def on_voice(message: Message):
     m, sec = divmod(v.duration, 60)
     emoji_voice = "5260268501515377807"
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_voice}'>🎤</tg-emoji> Voice information</b>\n\n"
         f"<b>duration : </b>{m}:{sec:02d}\n"
         f"<b>mime_type : </b>{v.mime_type or "-"}\n"
@@ -279,7 +306,7 @@ async def on_video(message: Message):
     m, sec = divmod(v.duration, 60)
     emoji_video = '5258077307985207053'  
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_video}'>🎬</tg-emoji> Video information</b>\n\n"
         f"<b>width : </b>{v.width}\n"
         f"<b>height : </b>{v.height}\n"
@@ -306,7 +333,7 @@ async def on_video_note(message: Message):
     m, sec = divmod(vn.duration, 60)
     emoji_vn = "5258012149036365477" 
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_vn}'>⭕️</tg-emoji> Video note information</b>\n\n"
         f"<b>length : </b>{vn.length}\n"
         f"<b>duration : </b>{m}:{sec:02d}\n"
@@ -320,33 +347,6 @@ async def on_video_note(message: Message):
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
 
-@router.message(F.animation)
-async def on_animation(message: Message):
-    user = message.from_user
-    an = message.animation
-    if user is None:
-        return
-
-    m, sec = divmod(an.duration, 60)
-    emoji_anim = "5258212268742549391" 
-
-    text = user_block(user) + (
-        f"<b><tg-emoji emoji-id='{emoji_anim}'>🎞</tg-emoji> Animation information</b>\n\n"
-        f"<b>width : </b>{an.width}\n"
-        f"<b>height : </b>{an.height}\n"
-        f"<b>duration : </b>{m}:{sec:02d}\n"
-        f"<b>file_name : </b>{html.escape(an.file_name or "-")}\n"
-        f"<b>mime_type : </b>{an.mime_type or "-"}\n"
-        f"<b>file_id : </b><code>{an.file_id}</code>\n"
-        f"<b>file_unique_id : </b><code>{an.file_unique_id}</code>\n"
-        f"<b>file_size : </b>{(an.file_size or 0) / 1000:.2f} kB\n"
-    )
-    if an.thumbnail:
-        text += thumb_block(an.thumbnail)
-    text += caption_block(message)
-
-    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
-
 @router.message(F.contact)
 async def on_contact(message: Message):
     user = message.from_user
@@ -356,7 +356,7 @@ async def on_contact(message: Message):
 
     emoji_contact = "5258362837411045098"  
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) + (
         f"<b><tg-emoji emoji-id='{emoji_contact}'>📞</tg-emoji> Contact information</b>\n\n"
         f"<b>first_name : </b>{html.escape(c.first_name)}\n"
         f"<b>last_name : </b>{html.escape(c.last_name or "-")}\n"
@@ -376,7 +376,7 @@ async def on_location(message: Message):
 
     emoji_loc = "5258509201306557640" 
 
-    text = user_block(user) + (
+    text = user_block(user) + forward_block(message) +  (
         f"<b><tg-emoji emoji-id='{emoji_loc}'>📍</tg-emoji> Location information</b>\n\n"
         f"<b>latitude : </b><code>{loc.latitude}</code>\n"
         f"<b>longitude : </b><code>{loc.longitude}</code>\n"
