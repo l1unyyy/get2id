@@ -5,7 +5,8 @@ from aiogram.enums import ChatAction
 import asyncio
 import logging
 from datetime import datetime
-import html
+import html 
+from getids import get_date_as_string
 
 router = Router()
 log = logging.getLogger(__name__)
@@ -14,6 +15,15 @@ emoji_user = '5256143829672672750'
 emoji_thumbnail = '5258477770735885832'
 emoji_caption = '5258328383183396223'
 EMOJI_FWD = "5258236805890710909" 
+
+def created(user_id : int) -> str:
+    kind , dc = get_date_as_string(user_id)
+    return {
+        "older_than" : f"older than {dc}",
+        "aprox" : f"~ {dc}",
+        "newer_than" : f"newer than {dc}",
+}[kind]
+
 def user_block(user) -> str:
     is_bot = "✅" if user.is_bot else "❌"
     is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
@@ -29,7 +39,8 @@ def user_block(user) -> str:
         f"<b>username : </b>{username}\n"
         f"<b>bot : </b>{is_bot}\n"
         f"<b>premium : </b>{is_premium}\n"
-        f"<b>language : </b>{lang}</blockquote>\n\n"
+        f"<b>language : </b>{lang}\n"
+        f"<b>created : </b>{created(user.id)}</blockquote>\n\n"
     )
 
 def thumb_block(t) -> str:
@@ -110,31 +121,45 @@ async def cmd_info(message: Message):
     is_bot = "✅" if user.is_bot else "❌"
     is_premium = "✅" if getattr(user, "is_premium", False) else "❌"
     username = f'<a href="https://t.me/{user.username}">@{user.username}</a>' if user.username else "—"
+    info_emoji = "5352667722092139468"
     lang = user.language_code or "—"
-
+    
     text = (
-        f"👤 <b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
+        f" <b><tg-emoji emoji-id='{emoji_user}' >👤</tg-emoji> User information</b>\n\n"
         f"<blockquote><b>id : </b> <code> {user.id}</code>\n"
         f"<b>name : </b>  {user.first_name}\n"
         f"<b>username : </b>  {username}\n"
         f"<b>bot : </b>  {is_bot}\n"
         f"<b>premium : </b>  {is_premium}\n"
-        f"<b>language : </b>  {lang}\n</blockquote>"
-    )
+        f"<b>language : </b>  {lang}\n"
+        f"<b>created : </b>{created(user.id)}</blockquote>\n\n"
+
+        f"<b><tg-emoji emoji-id='{info_emoji}' >ℹ️</tg-emoji> О дате создания</b>\n\n"
+        "<blockquote>"
+        "<b>Почему приблизительная?</b>\n"
+        "Telegram не отдаёт реальную дату регистрации аккаунта.\n\n"
+        "<b>Как считается?</b>\n"
+        "ID выдаются примерно по порядку, поэтому бот оценивает дату по ID аккаунта.\n\n"
+        "<b>Насколько точно?</b>\n"
+        "Погрешность может быть в несколько месяцев. Для самых новых аккаунтов показывается только «newer than»."
+        "</blockquote>"
+    ) 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
 @router.message(Command("dev"))
 async def cmd_owner(message : Message):
+    github_id = "5314703247737376876"
+    mail_id = "5253742260054409879"
     await message.bot.send_chat_action(
             chat_id=message.chat.id, 
             action=ChatAction.TYPING
         )
     await asyncio.sleep(0.3)
     text = (
-        "💎<b> Project information.</b>\n\n"
-        "<blockquote>👤 <b> Developer:</b> @kiloware\n"
-        "📩 <b> Contact:</b> <a href='https://t.me/kiloware'> Send a DM.</a>\n"
-        "🐙 <b> GitHub:</b> <a href='https://github.com/l1unyyy'>github.com/l1unyyy</a></blockquote>"
+        "<b> Project information.</b>\n\n"
+        "<blockquote>🧑‍💻 <b> Developer:</b> @rheophore\n"
+        f"<b><tg-emoji emoji-id='{mail_id}' >✉️</tg-emoji> Contact:</b> <a href='https://t.me/rheophore'> Send a DM.</a>\n"
+        f"<b><tg-emoji emoji-id='{github_id}' >🐙</tg-emoji> GitHub:</b> <a href='https://github.com/l1unyyy'>github.com/l1unyyy</a></blockquote>"
     )
     await message.answer(text, parse_mode="HTML")
 
