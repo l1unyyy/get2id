@@ -269,7 +269,7 @@ async def on_video_note(message: Message):
         return
 
     m, sec = divmod(vn.duration, 60)
-    emoji_vn = "5258012149036365477"  # замените на свой id эмодзи
+    emoji_vn = "5258012149036365477" 
 
     text = user_block(user) + (
         f"<b><tg-emoji emoji-id='{emoji_vn}'>⭕️</tg-emoji> Video note information</b>\n\n"
@@ -281,5 +281,33 @@ async def on_video_note(message: Message):
     )
     if vn.thumbnail:
         text += thumb_block(vn.thumbnail)
+
+    await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+
+@router.message(F.animation)
+async def on_animation(message: Message):
+    user = message.from_user
+    an = message.animation
+    if user is None:
+        return
+
+    m, sec = divmod(an.duration, 60)
+    emoji_anim = "5258212268742549391" 
+
+    text = user_block(user) + (
+        f"<b><tg-emoji emoji-id='{emoji_anim}'>🎞</tg-emoji> Animation information</b>\n\n"
+        f"<b>width : </b>{an.width}\n"
+        f"<b>height : </b>{an.height}\n"
+        f"<b>duration : </b>{m}:{sec:02d}\n"
+        f"<b>file_name : </b>{html.escape(an.file_name or "-")}\n"
+        f"<b>mime_type : </b>{an.mime_type or "-"}\n"
+        f"<b>file_id : </b><code>{an.file_id}</code>\n"
+        f"<b>file_unique_id : </b><code>{an.file_unique_id}</code>\n"
+        f"<b>file_size : </b>{(an.file_size or 0) / 1000:.2f} kB\n"
+    )
+    if an.thumbnail:
+        text += thumb_block(an.thumbnail)
+    text += caption_block(message)
 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
