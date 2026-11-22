@@ -387,3 +387,17 @@ async def on_location(message: Message):
     )
 
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
+
+
+@router.message(F.entities | F.caption_entities)
+async def on_custom_emoji(message: Message):
+    ents = (message.entities or []) + (message.caption_entities or [])
+    ids = [e.custom_emoji_id for e in ents if e.type == "custom_emoji"]
+    if not ids:
+        return
+
+    lines = "\n".join(f"<code>{i}</code>" for i in ids)
+    await message.answer(
+        f"<b>Custom emoji id</b>\n<blockquote>{lines}</blockquote>",
+        parse_mode="HTML",
+    )
