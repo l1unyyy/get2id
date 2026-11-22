@@ -79,4 +79,4 @@ For a server, run it under `systemd` or Docker so it restarts on failure. Only w
 
 ## Developer
 
-[@pheophore](https://t.me/pheophore)
+[@rheophore](https://t.me/rheophore)
